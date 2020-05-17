@@ -35,8 +35,18 @@ class CreatePlaylist:
 		# playlist id
 		return response_json["id"]
 
-	def get_spotify_uri(self):
-		pass
+	def get_spotify_uri(self, song_name, artist):
+		query = "https://api.spotify.com/v1/search"
+
+		response = requests.get(
+			query,
+			headers={
+				"Content-Type":"application/json",
+				"Authorization":"Bearer {}".format(self.spotify_token)
+			}
+		)
+		response_json = response.json()
+		songs = response_json["tracks"]["items"]
 
 	def add_song_to_playlist(self):
 		pass
