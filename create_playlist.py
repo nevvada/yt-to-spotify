@@ -1,7 +1,10 @@
+from secrets import spotify_user_id, spotify_token
+
 class CreatePlaylist:
 
 	def __init__(self):
-		pass
+		self.user_id = spotify_user_id
+		self.spotify_token = spotify_token
 
 	def get_youtube_client(self):
 		pass
