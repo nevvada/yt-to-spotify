@@ -18,25 +18,23 @@ class CreatePlaylist:
 		self.all_song_info = {}
 
 	def get_youtube_client(self):
-        # Disable OAuthlib's HTTPS verification when running locally.
-        # *DO NOT* leave this option enabled in production.
 		os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
 
-        api_service_name = "youtube"
-        api_version = "v3"
-        client_secrets_file = "client_secret.json"
+		api_service_name = "youtube"
+		api_version = "v3"
+		client_secrets_file = "client_secret.json"
 
-        # Get credentials and create an API client
-        scopes = ["https://www.googleapis.com/auth/youtube.readonly"]
-        flow = google_auth_oauthlib.flow.InstalledAppFlow.from_client_secrets_file(
-            client_secrets_file, scopes)
-        credentials = flow.run_console()
+		# Get credentials and create an API client
+		scopes = ["https://www.googleapis.com/auth/youtube.readonly"]
+		flow = google_auth_oauthlib.flow.InstalledAppFlow.from_client_secrets_file(
+			client_secrets_file, scopes)
+		credentials = flow.run_console()
 
-        # from the Youtube DATA API
-        youtube_client = googleapiclient.discovery.build(
-            api_service_name, api_version, credentials=credentials)
+		# from the Youtube DATA API
+		youtube_client = googleapiclient.discovery.build(
+			api_service_name, api_version, credentials=credentials)
 
-        return youtube_client
+		return youtube_client
 
 	def get_liked_videos(self):
 		request = self.youtube_client.videos().list(
@@ -55,7 +53,7 @@ class CreatePlaylist:
 
 			self.all_song_info[video_title] = {
 				"youtube_url":youtube_url,
-				"song_name":song_name
+				"song_name":song_name,
 				"artist":artist,
 				"spotify_uri":self.get_spotify_uri(song_name, artist)
 			}
@@ -95,4 +93,27 @@ class CreatePlaylist:
 		uri = response_json["tracks"]["items"]
 
 	def add_song_to_playlist(self):
-		pass
+		self.get_liked_videos()
+
+		uris = []
+
+		for song, info in self.all_song_info.items():
+			uris.append(info["spotify_uri"])
+
+		playlist_id = self.create_playlist()
+
+		request_data = json.dumps(uris)
+
+		query = "https://api.spoitfy.com/v1/playlists/{}/tracks".format(playlist_id)
+
+		response = requests.post(
+			query,
+			data=request_data,
+			headers={
+				"Content-Type":"application/json",
+				"Authorization": "Bearer {}".format(self.spotify_token)
+			}
+		)
+
+		response_json = response.json()
+		return response.json
